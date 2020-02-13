@@ -44,7 +44,10 @@ class Qnetwork(object):
         self.td_error = tf.square(self.targetQ - self.Q)
         self.loss = tf.reduce_mean(self.td_error)
         self.trainer = tf.train.AdamOptimizer(learning_rate=0.00025)
-        self.updateModel = self.trainer.minimize(self.loss)
+        self.gradients, self.variables = zip(*self.trainer.compute_gradients(self.loss))
+        #self.updateModel = self.trainer.minimize(self.loss)
+        self.grads_clipped, _ = tf.clip_by_global_norm(self.gradients,0.1)
+        self.updateModel = self.trainer.apply_gradients(zip(grads_clipped,variables))
         
     #Function helper to define a 2D convolution layer
     def conv2d(self, name, inputs, num_outputs, kernel_size, stride, padding, activation_fn):

@@ -106,7 +106,8 @@ for i in range(num_episodes):
         else:
             a = sess.run(mainQN.predict,feed_dict={mainQN.scalarInput:[np.reshape(state_stack, [input_size])]})[0]
         
-        s1,r,d,_ = env.step(a)        
+        s1,r_,d,_ = env.step(a)
+        r = max(-1,min(1,r_))        
         s1 = processState(s1)
         state_stack1=np.append(state_stack1,s1,axis=1)
         while(np.shape(state_stack1)[1]>4):
@@ -115,7 +116,7 @@ for i in range(num_episodes):
         
         episodeBuffer.add(np.reshape(np.array([np.reshape(state_stack, [input_size]),a,r,np.reshape(state_stack1, [input_size]),d]),[1,5])) #Save the experience to our episode buffer.
         
-        if i>=pre_train_eps and i % 5 == 0:
+        if i>=pre_train_eps and i % 20 == 0:
             env.render()
         
         if i >= pre_train_eps:
@@ -132,7 +133,7 @@ for i in range(num_episodes):
                     feed_dict={mainQN.scalarInput:np.vstack(trainBatch[:,0]),mainQN.targetQ:targetQ, mainQN.actions:trainBatch[:,1]})
                 
                 updateTarget(targetOps,sess) #Update the target network toward the primary network.
-        rAll += r
+        rAll += r_
         state_stack = np.copy(state_stack1)
         
         if d == True:
